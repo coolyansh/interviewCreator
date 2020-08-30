@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title_content %}
+Participants
+{% endblock %}
+
+{% block content %}
+      <div class="container my-5">
+        <h3>List of participants :</h3><br>
+        <div class="accordion my-1" id="accordionExample">
+          {% for row_data in data %}
+          <div class="card">
+            <div class="card-header" id="heading{{forloop.counter}}">
+              <h2 class="mb-0">
+                <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse{{forloop.counter}}" aria-expanded="false" aria-controls="collapse{{forloop.counter}}">
+                  {{forloop.counter}}. {{row_data.participant.name}} ( {{row_data.participant.email}} )
+                </button>
+              </h2>
+            </div>
+
+            <div id="collapse{{forloop.counter}}" class="collapse" aria-labelledby="heading{{forloop.counter}}" data-parent="#accordionExample">
+              <div class="card-body">
+                Interviews scheduled :<br>
+                <ul>
+                  {% for interview in row_data.interviews %}
+                  <li>{{interview.agenda}} ( {{interview.start_time}} - {{interview.end_time}} )</li>
+                  {% empty %}
+                  <li>No interviews scheduled as of now.</li>
+                  {% endfor %}
+                </ul>
+                <br>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+{% endblock %}

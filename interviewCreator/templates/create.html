@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title_content %}
+{% if nextURL == "createInterview" %}
+Create Interview
+{% else %}
+Edit Interviews
+{% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container my-5">
+
+    {% if nextURL == "createInterview" %}
+    <h3>Schedule an interview :</h3><br>
+    <form class="" action="{% url nextURL %}" onsubmit="return checkDuplicates()" method="post">
+    {% else %}
+    <h3>Edit interview :</h3><br>
+    <form class="" action="{% url nextURL interview_id %}" onsubmit="return checkDuplicates()" method="post">
+    {% endif %}
+    {% csrf_token %}
+    <input type="hidden" name="count" id="count" value="0">
+
+    <div class="row">
+      <div class="col-sm-3">
+      <label for="agenda">Enter agenda of interview : </label>
+      </div>
+      <div class="col-sm-2">
+      <input type="text" name="agenda" value="" id="agenda" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm">
+        <label for="start_time">Start time of interview : </label><br>
+        <input type="datetime-local" name="start_time" id="start_time" required>
+      </div>
+      <div class="col-sm">
+        <label for="end_time">End time of interview : </label><br>
+        <input type="datetime-local" name="end_time" id="end_time" required><br><br>
+      </div>
+    </div>
+
+    <div class="" id="participants">
+    </div>
+
+    <div class="row m-1">
+      <div class="my-1">
+        <br><button class="btn btn-info" type="button" name="addButton" id="addButton">Add Participant</button><br>
+      </div>
+      <div class="m-1">
+        <br><button class="btn btn-info" type="button" name="deleteButton" id="deleteButton">Delete Last Participant</button><br>
+      </div>
+      <div class="col-sm">
+      </div>
+    </div>
+
+    <div class="alert alert-danger m-1" role="alert" id="message">
+      {{message}}
+    </div>
+
+    {% if nextURL == "createInterview" %}
+    <br><input class="btn btn-primary m-1" type="submit" value="Create Interview"><br>
+    {% else %}
+    <br><input class="btn btn-primary m-1" type="submit" value="Edit Interview"><br>
+    {% endif %}
+
+
+  </form>
+
+  </div>
+
+{% endblock %}
+
+{% block additional_scripts %}
+    var count=0;
+    var num={{num}};
+    var participants={{participants|safe}};
+
+    function checkDuplicates(){
+      selected_participants=[]
+      $("#message").hide();
+      num=$("#count").val();
+      for(i=1;i<=num;i++)
+      {
+        participant=$("#participant"+i.toString()).val();
+        selected_participants.push(participant);
+      }
+      flag= (new Set(selected_participants).size === selected_participants.length);
+      if(flag==false)
+      {
+        $("#message").html("You have selected duplicate participants. Please ensure that every participant selected is unique.");
+        $("#message").show();
+      }
+      return flag;
+    }
+
+    function addDropdown()
+    {
+      count++;
+      $('#count').val(count);
+      dropdown_id="participant"+count.toString();
+      div_id="div"+count.toString();
+      $("#participants").append($('<div></div>').attr({'id':div_id}));
+      $("#"+div_id).append($('<label></label>').attr({'for': dropdown_id}).html("Select participant "+count.toString()));
+      $("#"+div_id).append($('<br>'));
+      $("#"+div_id).append($('<select></select>').attr({'id': dropdown_id,'name': dropdown_id,'required': true}));
+      $("#"+dropdown_id).append('<option value="none" disabled >Choose a participant</option>');
+      $.each(participants, function(i, p) {
+        $("#"+dropdown_id).append($('<option></option>').val(p.email).html(p.email));
+      });
+      $("#"+div_id).append($('<br><br>'));
+      $("#"+dropdown_id).select2();
+    }
+
+    function removeDropdown()
+    {
+      if(count<=2)
+      return;
+
+      div_id="#div"+count.toString();
+      $(div_id).remove();
+      count--;
+      $('#count').val(count);
+    }
+
+    function toISOLocal(d) {
+      var z  = n =>  ('0' + n).slice(-2);
+      var zz = n => ('00' + n).slice(-3);
+      var off = d.getTimezoneOffset();
+      var sign = off < 0? '+' : '-';
+      off = Math.abs(off);
+
+      return (d.getFullYear() + '-'
+           + z(d.getMonth()+1) + '-' +
+           z(d.getDate()) + 'T' +
+           z(d.getHours()) + ':'  +
+           z(d.getMinutes()) );
+    }
+
+
+    $('document').ready(function(){
+
+      date=toISOLocal(new Date());
+      $('#message').hide();
+      $('#start_time').attr({'min':date});
+      $('#end_time').attr({'min':date});
+
+      $('#start_time').change(function(){
+        start_time=$('#start_time').val();
+        $('#end_time').attr({'min':start_time});
+      });
+
+      $('#addButton').click(function(){
+        addDropdown();
+      });
+
+      $('#deleteButton').click(function(){
+        removeDropdown();
+      });
+
+      if(num>1){
+        participants_selected=[]
+        {% for participant in participants_selected %}
+          participants_selected.push('{{participant.email}}')
+        {% endfor %}
+        $('#agenda').val('{{interview.agenda}}');
+        $('#start_time').val('{{interview.start_time|date:"Y-m-d"}}T{{interview.start_time|date:"H:i"}}');
+        $('#end_time').val('{{interview.end_time|date:"Y-m-d"}}T{{interview.end_time|date:"H:i"}}');
+        for(i=0;i<num;i++)
+        {
+          addDropdown();
+          $('#participant'+((i+1).toString())).val(participants_selected[i]).change();
+        }
+      }
+      else {
+        addDropdown();
+        addDropdown();
+      }
+
+    });
+
+{% endblock %}

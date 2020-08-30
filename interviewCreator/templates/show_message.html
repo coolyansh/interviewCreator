@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title_content %}
+{{status}}
+{% endblock %}
+
+{% block content %}
+{% if status == 'success' %}
+<div class="alert alert-success" role="alert">
+  Wohoo !!!<br>
+  {{message}}
+</div>
+{% else %}
+<div class="alert alert-danger" role="alert">
+  Oops !!!<br>
+  {{message}}
+</div>
+{% endif %}
+{% endblock %}
